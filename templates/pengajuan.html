@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Sertifikat - Pengajuan Sertifikat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .data-table {
+            border: 5px solid #dee2e6;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/penduduk">Penduduk</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pengajuan_sertifikat">Pengajuan Sertifikat</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/sertifikat">Sertifikat</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <h1>Pengajuan Sertifikat</h1>
+            </div>
+            <div class="col-sm-6 text-right">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#pengajuanModal">Tambah Pengajuan</button>
+            </div>
+        </div>
+
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Jenis Sertifikat</th>
+                    <th>Tanggal Pengajuan</th>
+                    <th>ID Penduduk</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in pengajuan_sertifikat %}
+                <tr>
+                    <td>{{ p.jenis_sertifikat }}</td>
+                    <td>{{ p.tanggal_pengajuan }}</td>
+                    <td>{{ p.penduduk_id }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm editPengajuan" data-id="{{ p.id_pengajuan }}">Edit</button>
+                        <button class="btn btn-danger btn-sm deletePengajuan" data-id="{{ p.id_pengajuan }}">Hapus</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Tambah/Edit Pengajuan -->
+    <div class="modal fade" id="pengajuanModal" tabindex="-1" role="dialog" aria-labelledby="pengajuanModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pengajuanModalLabel">Tambah Pengajuan</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="pengajuanForm">
+                        <input type="hidden" id="id_pengajuan">
+                        <div class="form-group">
+                            <label for="jenis_sertifikat">Jenis Sertifikat:</label>
+                            <input type="text" class="form-control" id="jenis_sertifikat" name="jenis_sertifikat" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="penduduk_id">ID Penduduk:</label>
+                            <input type="number" class="form-control" id="penduduk_id" name="penduduk_id" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="savePengajuan">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Fungsi untuk mendapatkan data pengajuan sertifikat
+            function getPengajuanSertifikat() {
+                $.ajax({
+                    url: '/pengajuan_sertifikat',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#pengajuanList').empty();
+                        data.pengajuan_sertifikat.forEach(function(pengajuan) {
+                            $('#pengajuanList').append(`
+                                <tr>
+                                    <td>${pengajuan.jenis_sertifikat}</td>
+                                    <td>${pengajuan.tanggal_pengajuan}</td>
+                                    <td>${pengajuan.penduduk_id}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editPengajuan" data-id="${pengajuan.id_pengajuan}">Edit</button>
+                                        <button class="btn btn-danger btn-sm deletePengajuan" data-id="${pengajuan.id_pengajuan}">Hapus</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+
+            // Fungsi untuk menambahkan/mengupdate pengajuan sertifikat
+            $('#savePengajuan').click(function() {
+                var formData = {
+                    jenis_sertifikat: $('#jenis_sertifikat').val(),
+                    penduduk_id: $('#penduduk_id').val()
+                };
+                var id_pengajuan = $('#id_pengajuan').val();
+                var url = '/pengajuan_sertifikat';
+                var method = 'POST';
+
+                if (id_pengajuan) {
+                    url += '/' + id_pengajuan;
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(data) {
+                        getPengajuanSertifikat();
+                        $('#pengajuanModal').modal('hide');
+                        $('#id_pengajuan').val('');
+                        $('#jenis_sertifikat').val('');
+                        $('#penduduk_id').val('');
+                        location.reload();
+                    }
+                });
+            });
+
+            // Fungsi untuk menampilkan modal edit pengajuan sertifikat
+            $(document).on('click', '.editPengajuan', function() {
+                var id_pengajuan = $(this).data('id');
+                $.ajax({
+                    url: '/pengajuan_sertifikat/' + id_pengajuan,
+                    type: 'GET',
+                    success: function(data) {
+                        $('#pengajuanModalLabel').text('Edit Pengajuan');
+                        $('#id_pengajuan').val(data.id_pengajuan);
+                        $('#jenis_sertifikat').val(data.jenis_sertifikat);
+                        $('#penduduk_id').val(data.penduduk_id);
+                        $('#pengajuanModal').modal('show');
+                    }
+                });
+            });
+
+            // Fungsi untuk menghapus pengajuan sertifikat
+            $(document).on('click', '.deletePengajuan', function() {
+                var id_pengajuan = $(this).data('id');
+                if (confirm('Apakah Anda yakin ingin menghapus pengajuan sertifikat ini?')) {
+                    $.ajax({
+                        url: '/pengajuan_sertifikat/' + id_pengajuan,
+                        type: 'DELETE',
+                        success: function(data) {
+                            getPengajuanSertifikat();
+                            location.reload();
+                        }
+                    });
+                }
+            });
+
+            // Mengambil data pengajuan sertifikat saat halaman dimuat
+            getPengajuanSertifikat();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Sertifikat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .data-table {
+            border: 5px solid #dee2e6;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/penduduk">Penduduk</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pengajuan_sertifikat">Pengajuan Sertifikat</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/sertifikat">Sertifikat</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <h1>Penduduk</h1>
+            </div>
+            <div class="col-sm-6 text-right">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#pendudukModal">Tambah Penduduk</button>
+            </div>
+        </div>
+
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>ID Penduduk</th>
+                    <th>Nama</th>
+                    <th>Alamat</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in penduduk %}
+                <tr>
+                    <td>{{ p.id_penduduk }}</td>
+                    <td>{{ p.nama }}</td>
+                    <td>{{ p.alamat }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm editPenduduk" data-id="{{ p.id_penduduk }}">Edit</button>
+                        <button class="btn btn-danger btn-sm deletePenduduk" data-id="{{ p.id_penduduk }}">Hapus</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="modal fade" id="pendudukModal" tabindex="-1" role="dialog" aria-labelledby="pendudukModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pendudukModalLabel">Tambah Penduduk</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="pendudukForm">
+                        <input type="hidden" id="id_penduduk">
+                        <div class="form-group">
+                            <label for="nama">Nama:</label>
+                            <input type="text" class="form-control" id="nama" name="nama" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="alamat">Alamat:</label>
+                            <input type="text" class="form-control" id="alamat" name="alamat" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="savePenduduk">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Fungsi untuk mendapatkan data penduduk
+            function getPenduduk() {
+                $.ajax({
+                    url: '/penduduk',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#pendudukList').empty();
+                        data.penduduk.forEach(function(penduduk) {
+                            $('#pendudukList').append(`
+                                <tr>
+                                    <td>${penduduk.id_penduduk}</td>
+                                    <td>${penduduk.nama}</td>
+                                    <td>${penduduk.alamat}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editPenduduk" data-id="${penduduk.id_penduduk}">Edit</button>
+                                        <button class="btn btn-danger btn-sm deletePenduduk" data-id="${penduduk.id_penduduk}">Hapus</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+
+            // Fungsi untuk menambahkan/mengupdate penduduk
+            $('#savePenduduk').click(function() {
+                var formData = {
+                    nama: $('#nama').val(),
+                    alamat: $('#alamat').val()
+                };
+                var id_penduduk = $('#id_penduduk').val();
+                var url = '/penduduk';
+                var method = 'POST';
+
+                if (id_penduduk) {
+                    url += '/' + id_penduduk;
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(data) {
+                        console.log("Data saved successfully");
+                        getPenduduk();
+                        $('#pendudukModal').modal('hide');
+                        $('#id_penduduk').val('');
+                        $('#nama').val('');
+                        $('#alamat').val('');
+                        location.reload();
+                    },
+                    error: (error) => {
+                        console.log(JSON.stringify(error));
+      }
+                });
+            });
+
+            $(document).on('click', '.editPenduduk', function() {
+                var id_penduduk = $(this).data('id');
+                $.ajax({
+                    url: '/penduduk/' + id_penduduk,
+                    type: 'GET',
+                    success: function(data) {
+                        if (data.message) {
+                            alert(data.message); // Menampilkan pesan error dari server
+                        } else {
+                            $('#pendudukModalLabel').text('Edit Penduduk');
+                            $('#id_penduduk').val(data.id_penduduk);
+                            $('#nama').val(data.nama);
+                            $('#alamat').val(data.alamat);
+                            $('#pendudukModal').modal('show');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert('Terjadi kesalahan dalam mengambil data penduduk: ' + error); // Menampilkan pesan error
+                    }
+                });
+            });
+
+
+            // Fungsi untuk menghapus penduduk
+            $(document).on('click', '.deletePenduduk', function() {
+                var id_penduduk = $(this).data('id');
+                if (confirm('Apakah Anda yakin ingin menghapus penduduk ini?')) {
+                    $.ajax({
+                        url: '/penduduk/' + id_penduduk,
+                        type: 'DELETE',
+                        success: function(data) {
+                            getPenduduk();
+                            location.reload();
+                        }
+                    });
+                }
+            });
+            getPenduduk();
+        });
+    </script>
+</body>
+</html>

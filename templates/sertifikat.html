@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Sertifikat - Sertifikat</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        .data-table {
+            border: 5px solid #dee2e6;
+            border-radius: 5px;
+            background-color: #f8f9fa;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+        <ul class="navbar-nav">
+            <li class="nav-item">
+                <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/penduduk">Penduduk</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/pengajuan_sertifikat">Pengajuan Sertifikat</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="/sertifikat">Sertifikat</a>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container mt-4">
+        <div class="row mb-3">
+            <div class="col-sm-6">
+                <h1>Sertifikat</h1>
+            </div>
+            <div class="col-sm-6 text-right">
+                <button class="btn btn-primary" data-toggle="modal" data-target="#sertifikatModal">Tambah Sertifikat</button>
+            </div>
+        </div>
+
+        <table class="table data-table">
+            <thead>
+                <tr>
+                    <th>Nomor Sertifikat</th>
+                    <th>Tanggal Terbit</th>
+                    <th>ID Pengajuan</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sertifikat %}
+                <tr>
+                    <td>{{ s.nomor_sertifikat }}</td>
+                    <td>{{ s.tanggal_terbit }}</td>
+                    <td>{{ s.pengajuan_sertifikat_id }}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm editSertifikat" data-id="{{ s.id_sertifikat }}">Edit</button>
+                        <button class="btn btn-danger btn-sm deleteSertifikat" data-id="{{ s.id_sertifikat }}">Hapus</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Modal Tambah/Edit Sertifikat -->
+    <div class="modal fade" id="sertifikatModal" tabindex="-1" role="dialog" aria-labelledby="sertifikatModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="sertifikatModalLabel">Tambah Sertifikat</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="sertifikatForm">
+                        <input type="hidden" id="id_sertifikat">
+                        <div class="form-group">
+                            <label for="nomor_sertifikat">Nomor Sertifikat:</label>
+                            <input type="text" class="form-control" id="nomor_sertifikat" name="nomor_sertifikat" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="pengajuan_sertifikat_id">ID Pengajuan:</label>
+                            <input type="number" class="form-control" id="pengajuan_sertifikat_id" name="pengajuan_sertifikat_id" required>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Batal</button>
+                    <button type="button" class="btn btn-primary" id="saveSertifikat">Simpan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Fungsi untuk mendapatkan data sertifikat
+            function getSertifikat() {
+                $.ajax({
+                    url: '/sertifikat',
+                    type: 'GET',
+                    success: function(data) {
+                        $('#sertifikatList').empty();
+                        data.sertifikat.forEach(function(sertifikat) {
+                            $('#sertifikatList').append(`
+                                <tr>
+                                    <td>${sertifikat.nomor_sertifikat}</td>
+                                    <td>${sertifikat.tanggal_terbit}</td>
+                                    <td>${sertifikat.pengajuan_sertifikat_id}</td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm editSertifikat" data-id="${sertifikat.id_sertifikat}">Edit</button>
+                                        <button class="btn btn-danger btn-sm deleteSertifikat" data-id="${sertifikat.id_sertifikat}">Hapus</button>
+                                    </td>
+                                </tr>
+                            `);
+                        });
+                    }
+                });
+            }
+
+            // Fungsi untuk menambahkan/mengupdate sertifikat
+            $('#saveSertifikat').click(function() {
+                var formData = {
+                    nomor_sertifikat: $('#nomor_sertifikat').val(),
+                    pengajuan_sertifikat_id: $('#pengajuan_sertifikat_id').val()
+                };
+                var id_sertifikat = $('#id_sertifikat').val();
+                var url = '/sertifikat';
+                var method = 'POST';
+
+                if (id_sertifikat) {
+                    url += '/' + id_sertifikat;
+                    method = 'PUT';
+                }
+
+                $.ajax({
+                    url: url,
+                    type: method,
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(data) {
+                        getSertifikat();
+                        $('#sertifikatModal').modal('hide');
+                        $('#id_sertifikat').val('');
+                        $('#nomor_sertifikat').val('');
+                        $('#pengajuan_sertifikat_id').val('');
+                        location.reload();
+                    }
+                });
+            });
+
+            // Fungsi untuk menampilkan modal edit sertifikat
+            $(document).on('click', '.editSertifikat', function() {
+                var id_sertifikat = $(this).data('id');
+                $.ajax({
+                    url: '/sertifikat/' + id_sertifikat,
+                    type: 'GET',
+                    success: function(data) {
+                        $('#sertifikatModalLabel').text('Edit Sertifikat');
+                        $('#id_sertifikat').val(data.id_sertifikat);
+                        $('#nomor_sertifikat').val(data.nomor_sertifikat);
+                        $('#pengajuan_sertifikat_id').val(data.pengajuan_sertifikat_id);
+                        $('#sertifikatModal').modal('show');
+                    }
+                });
+            });
+
+            // Fungsi untuk menghapus sertifikat
+            $(document).on('click', '.deleteSertifikat', function() {
+                var id_sertifikat = $(this).data('id');
+                if (confirm('Apakah Anda yakin ingin menghapus sertifikat ini?')) {
+                    $.ajax({
+                        url: '/sertifikat/' + id_sertifikat,
+                        type: 'DELETE',
+                        success: function(data) {
+                            getSertifikat();
+                            location.reload();
+                        }
+                    });
+                }
+            });
+
+            // Mengambil data sertifikat saat halaman dimuat
+            getSertifikat();
+        });
+    </script>
+</body>
+</html>

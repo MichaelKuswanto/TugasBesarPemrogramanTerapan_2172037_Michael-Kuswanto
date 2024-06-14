@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aplikasi Sertifikat</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    .data-table {
+      border: 5px solid #dee2e6;
+      border-radius: 5px;
+      background-color: #f8f9fa;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-sm bg-dark navbar-dark">
+    <ul class="navbar-nav">
+      <li class="nav-item">
+        <a class="nav-link" href="/">Home</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/penduduk">Penduduk</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/pengajuan_sertifikat">Pengajuan Sertifikat</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="/sertifikat">Sertifikat</a>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="container mt-4">
+    <div class="mb-4">
+      <h1>Data Penduduk</h1>
+    </div>
+
+    <table class="table table-striped table-bordered data-table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Nama</th>
+          <th scope="col">Alamat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in penduduk %}
+        <tr>
+          <td>{{ p.id_penduduk }}</td>
+          <td>{{ p.nama }}</td>
+          <td>{{ p.alamat }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="mb-4">
+      <h1>Data Pengajuan Sertifikat</h1>
+    </div>
+
+    <table class="table table-striped table-bordered data-table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Jenis Sertifikat</th>
+          <th scope="col">Tanggal Pengajuan</th>
+          <th scope="col">ID Penduduk</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for ps in pengajuan_sertifikat %}
+        <tr>
+          <td>{{ ps.id_pengajuan }}</td>
+          <td>{{ ps.jenis_sertifikat }}</td>
+          <td>{{ ps.tanggal_pengajuan }}</td>
+          <td>{{ ps.penduduk_id }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <div class="mb-4">
+      <h1>Data Sertifikat</h1>
+    </div>
+
+    <table class="table table-striped table-bordered data-table">
+      <thead>
+        <tr>
+          <th scope="col">ID</th>
+          <th scope="col">Nomor Sertifikat</th>
+          <th scope="col">Tanggal Terbit</th>
+          <th scope="col">ID Pengajuan Sertifikat</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in sertifikat %}
+        <tr>
+          <td>{{ s.id_sertifikat }}</td>
+          <td>{{ s.nomor_sertifikat }}</td>
+          <td>{{ s.tanggal_terbit }}</td>
+          <td>{{ s.pengajuan_sertifikat_id }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
